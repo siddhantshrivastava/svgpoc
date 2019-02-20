@@ -21,6 +21,7 @@ class d3Chart extends React.Component {
             g = svg.append("g").attr("transform", "translate(20,8)"),
             ecgData = ecg.Data.ECG;
         // const result = ecgData.filter(word => word[0] <= 2400);
+
         //translate points of nested svg containers
         let points = [[0, 10, 170, 330], [310, 10, 170, 330], [620, 10, 170, 330], [930, 10, 170, 330]];
 
@@ -36,10 +37,7 @@ class d3Chart extends React.Component {
             m++;
         }
 
-        //adding zoom in each svg containers
-        groups.forEach((ele) => {
-            ele[0].call(d3.zoom().scaleExtent([1, 8]).on('zoom', function () { ele[1].attr("transform", d3.event.transform) }))
-        })
+
 
         //creating an array containing plotting points for x-axis grid lines
         let xDomain = d3.max(ecgData, function (d, i) {
@@ -77,6 +75,14 @@ class d3Chart extends React.Component {
         //Dimension of graph
         const width = xDomain * 3.2 / 40,
             height = ymax * 2 * 3.2 * 10;
+
+        //adding zoom in each svg containers
+        groups.forEach((ele) => {
+            ele[0].call(d3.zoom().scaleExtent([1, 8])
+                // .translateExtent([[0, 0], [width, height]])
+                // .extent([[0, 0], [width, height]])
+                .on('zoom', function () { ele[1].attr("transform", d3.event.transform) }))
+        })
 
         const x = d3.scaleLinear()
             .domain([0, xDomain])
@@ -175,8 +181,92 @@ class d3Chart extends React.Component {
                 .datum(ecgData)
                 .attr("class", `lineUsers`)
                 .attr("d", lineCount);
-            count++
-        })
+            count++;
+
+            let mouseG = ele[1].append("g")
+                .attr("class", "mouse-over-effects");
+
+            mouseG.append("path") // this is the black vertical line to follow mouse
+                .attr("class", `mouse-line${i}`)
+                .style("stroke", "red")
+                .style("stroke-width", "1px")
+                .style("opacity", "0");
+
+            // var lines = document.getElementsByClassName('line');
+
+        //     var mousePerLine = mouseG.selectAll('.mouse-per-line')
+        //         .data(ecgData)
+        //         .enter()
+        //         .append("g")
+        //         .attr("class", "mouse-per-line");
+      
+
+        // mousePerLine.append("text")
+        //     .attr("transform", "translate(10,3)");
+
+        mouseG.append('rect') // append a rect to catch mouse movements on canvas
+            .attr('width', width) // can't catch mouse events on a g element
+            .attr('height', height)
+            .attr('fill', 'none')
+            .attr('pointer-events', 'all')
+            .on('mouseout', function () { // on mouse out hide line, circles and text
+                d3.select(`.mouse-line${i}`)
+                    .style("opacity", "0");
+                // d3.selectAll(".mouse-per-line circle")
+                //     .style("opacity", "0");
+                // d3.selectAll(".mouse-per-line text")
+                //     .style("opacity", "0");
+            })
+            .on('mouseover', function () { // on mouse in show line, circles and text
+                d3.select(`.mouse-line${i}`)
+                    .style("opacity", "1");
+                // d3.selectAll(".mouse-per-line circle")
+                //     .style("opacity", "1");
+                // d3.selectAll(".mouse-per-line text")
+                //     .style("opacity", "1");
+            })
+            .on('mousemove', function () { // mouse moving over canvas
+                var mouse = d3.mouse(this);
+                d3.select(`.mouse-line${i}`)
+                    .attr("d", function () {
+                        var d = "M" + mouse[0] + "," + height;
+                        d += " " + mouse[0] + "," + 0;
+                        console.log(d)
+                        return d;
+                    });
+                // d3.selectAll(".mouse-per-line")
+                //     .attr("transform", function (d, i) {
+                //         console.log(width / mouse[0])
+                //         var xDate = x.invert(mouse[0]),
+                //             bisect = d3.bisector(function (d) { return d[1]; }).right,
+                //         idx = bisect(d[1], xDate);
+
+                //         var beginning = 0,
+                //             end = lines[i].getTotalLength(),
+                //             target = null;
+                //             let pos
+                //         while (true) {
+                //             target = Math.floor((beginning + end) / 2);
+                //             pos = lines[i].getPointAtLength(target);
+                //             if ((target === end || target === beginning) && pos.x !== mouse[0]) {
+                //                 break;
+                //             }
+                //             if (pos.x > mouse[0]) end = target;
+                //             else if (pos.x < mouse[0]) beginning = target;
+                //             else break; //position found
+                //         }
+
+                //         d3.select(this).select('text')
+                //             .text(y.invert(pos.y).toFixed(2));
+
+                //         return "translate(" + mouse[0] + "," + pos.y + ")";
+                //     });
+            });  })
+        // d3.selectAll(".tick")
+        //   .on("click",function(e,i){
+        //       console.log(d3.event)
+        //       console.log(e,i)
+        //   })
 
     }
 
