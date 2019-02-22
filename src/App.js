@@ -66,7 +66,7 @@ class d3Chart extends React.Component {
 
         let ymax = yDomainMax > Math.abs(yDomainMin) ? Math.ceil(yDomainMax) : Math.ceil(Math.abs(yDomainMin));
 
-        var ymin = -ymax;
+        let ymin = -ymax;
         let ygrid = [];
         for (let i = ymin; i <= ymax; i = Number((i + 0.1).toFixed(1))) {
             ygrid.push(i)
@@ -178,15 +178,9 @@ class d3Chart extends React.Component {
                 .style('font-size', '12')
                 .text(leadNames[i]);
         })
-        let click_count = 0;
-        let click_ele = [];
-        let higlightData = ecgData.filter((d) => {
-            if (d[0] > 500 && d[0] <= 1000) { return d; }
-        }
-        );
-
-        console.log("higlightData ",higlightData)
-
+        let click_count = 0,
+            click_ele = [],
+            xSelect = [];
         //plot the graph
         groups.forEach((ele, i) => {
             ele[1].append("path")
@@ -195,16 +189,6 @@ class d3Chart extends React.Component {
                 .attr("id", `lineUser${i}`)
                 .attr("d", lineCount);
             count++;
-
-            if(i==0){
-                yIndex=1;
-                ele[1].append("path")
-                .datum(higlightData)
-                .attr("class", `lineUsers`)
-                .attr("id", `lineUser${i}`)
-                .attr("d", lineCount2)
-                .style("stroke","green");
-            }
 
             let mouseG = ele[1].append("g")
                 .attr("class", "mouse-over-effects");
@@ -222,9 +206,9 @@ class d3Chart extends React.Component {
                 .attr("class", `mouse-line${i}b`)
                 .style("stroke", "red")
                 .style("stroke-width", "1px")
-            // var lines = document.getElementsByClassName('line');
+            // let lines = document.getElementsByClassName('line');
 
-            //     var mousePerLine = mouseG.selectAll('.mouse-per-line')
+            //     let mousePerLine = mouseG.selectAll('.mouse-per-line')
             //         .data(ecgData)
             //         .enter()
             //         .append("g")
@@ -234,7 +218,7 @@ class d3Chart extends React.Component {
             // mousePerLine.append("text")
             //     .attr("transform", "translate(10,3)");
             click_ele[i] = click_count;
-            var bisectDate = d3.bisector(function (d) {
+            let bisectDate = d3.bisector(function (d) {
                 console.log("888844444 ", d)
                 return d[0];
             }).right;
@@ -245,6 +229,13 @@ class d3Chart extends React.Component {
                 .attr('pointer-events', 'all')
                 .attr('id', i)
                 .on('click', function () {
+                    let mouse = d3.mouse(this);
+                    let xValue = x.invert(mouse[0]);
+                    let yValue = y.invert(mouse[1]);
+                    let j = bisectDate(ecgData, xValue);
+
+                    console.log("click-value ", xValue, mouse, j)
+
                     if (click_count > 1) {
                         click_count = 0;
                     }
@@ -252,11 +243,14 @@ class d3Chart extends React.Component {
                     if (click_ele[i] === 0) {
                         d3.select(`.mouse-line${i}a`)
                             .style("opacity", "1");
+                        xSelect[0] = Math.floor(xValue)
                     }
                     else if (click_ele[i] === 1) {
                         d3.select(`.mouse-line${i}b`)
                             .style("opacity", "1");
+                        xSelect[1] = Math.floor(xValue)
                     }
+                    console.log("xSelect ", xSelect)
                     click_count++;
                     if (click_ele[i] > 1) {
                         console.log("clic ", click_count)
@@ -299,22 +293,43 @@ class d3Chart extends React.Component {
                 })
                 .on("contextmenu", function (d, i) {
                     d3.event.preventDefault();
-                    console.log("contextmenu ",this,i)
-                   // react on right-clicking
+                    console.log("contextmenu ", this.id, i)
+                    let min,
+                        max;
+                    if (xSelect[0] < xSelect[1]) {
+                        min = xSelect[0];
+                        max = xSelect[1];
+                    }else{
+                        max = xSelect[0];
+                        min = xSelect[1];
+                    }
+
+                    if (click_count === 2) {
+                        let higlightData = ecgData.filter((d) => {
+                            if (d[0] >= min && d[0] <= max) { return d; }
+                        }
+                        );
+
+                        yIndex = Number(this.id)+1;
+                        ele[1].append("path")
+                            .datum(higlightData)
+                            .attr("class", `lineUsers`)
+                            .attr("id", `lineUser${i}`)
+                            .attr("d", lineCount2)
+                            .style("stroke", "#4db95a");
+                    }
+
+                    // react on right-clicking
                 })
                 .on('mousemove', function () { // mouse moving over canvas
                     console.log("mousemove ", click_ele[i], click_count)
 
-                    var mouse = d3.mouse(this);
-                    var xValue = x.invert(mouse[0]);
-                    var yValue = y.invert(mouse[1]);
-                    var j = bisectDate(ecgData, xValue);
+                    let mouse = d3.mouse(this);
 
-                    console.log(xValue, mouse, j)
                     if (click_ele[i] === 0) {
                         d3.select(`.mouse-line${i}a`)
                             .attr("d", function () {
-                                var d = "M" + mouse[0] + "," + height;
+                                let d = "M" + mouse[0] + "," + height;
                                 d += " " + mouse[0] + "," + 0;
                                 console.log(d)
                                 return d;
@@ -322,7 +337,7 @@ class d3Chart extends React.Component {
                     } else if (click_ele[i] === 1) {
                         d3.select(`.mouse-line${i}b`)
                             .attr("d", function () {
-                                var d = "M" + mouse[0] + "," + height;
+                                let d = "M" + mouse[0] + "," + height;
                                 d += " " + mouse[0] + "," + 0;
                                 console.log(d)
                                 return d;
@@ -331,11 +346,11 @@ class d3Chart extends React.Component {
                     // d3.selectAll(".mouse-per-line")
                     //     .attr("transform", function (d, i) {
                     //         console.log(width / mouse[0])
-                    //         var xDate = x.invert(mouse[0]),
+                    //         let xDate = x.invert(mouse[0]),
                     //             bisect = d3.bisector(function (d) { return d[1]; }).right,
                     //         idx = bisect(d[1], xDate);
 
-                    //         var beginning = 0,
+                    //         let beginning = 0,
                     //             end = lines[i].getTotalLength(),
                     //             target = null;
                     //             let pos
