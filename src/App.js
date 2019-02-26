@@ -207,6 +207,11 @@ class d3Chart extends React.Component {
                 .attr("class", `mouse-line${i}b`)
                 .style("stroke", "red")
                 .style("stroke-width", ".8px")
+
+            mouseG.append("path") // this is the red horizontal line to follow mouse
+                .attr("class", `mouse-line${i}c`)
+                .style("stroke", "red")
+                .style("stroke-width", ".8px")
             // let lines = document.getElementsByClassName("line");
 
             //     let mousePerLine = mouseG.selectAll(".mouse-per-line")
@@ -223,19 +228,24 @@ class d3Chart extends React.Component {
                 console.log("888844444 ", d)
                 return d[0];
             }).right;
-            ele[1].append("text")
-            .style("display", "none")
-            .attr("id","tooltip")
-            .attr("font-size", "8")
-            .text("I");
-            ele[1].selectAll("circle").data(ecgData).enter().append("circle")
-                .attr("cx", function (d) { return x(d[0]); })
-                .attr("cy", function (d) { return y(d[1]); })
-                .attr("r", 1)
-                .attr("class", "circle");
 
-            var focus = ele[1].append("g").style("display", "none");
-          
+            // ele[1].append("text")
+            //     .style("display", "none")
+            //     .attr("id", "tooltip")
+            //     .attr("font-size", "8")
+            //     .text("I");
+
+            // ele[1].selectAll("circle")
+            //     .data(ecgData)
+            //     .enter()
+            //     .append("circle")
+            //     .attr("cx", function (d) { return x(d[0]); })
+            //     .attr("cy", function (d) { return y(d[1]); })
+            //     .attr("r", 1)
+            //     .attr("class", "circle");
+
+            var focus = mouseG.append("g");
+
             // focus.append("line")
             //     .attr("id", "focusLineX")
             //     .attr("class", "focusLine");
@@ -273,6 +283,8 @@ class d3Chart extends React.Component {
                     else if (click_ele[i] === 1) {
                         d3.select(`.mouse-line${i}b`)
                             .style("opacity", "1");
+                        d3.select(`.mouse-line${i}c`)
+                            .style("opacity", "1");
                         xSelect[1] = Math.floor(xValue)
                     }
                     console.log("xSelect ", xSelect)
@@ -281,6 +293,8 @@ class d3Chart extends React.Component {
                         console.log("clic ", click_count)
                         click_count = 0;
                         d3.select(`.mouse-line${i}b`)
+                            .style("opacity", "0");
+                        d3.select(`.mouse-line${i}c`)
                             .style("opacity", "0");
                     }
                     click_ele[i] = click_count
@@ -295,9 +309,11 @@ class d3Chart extends React.Component {
                             .style("opacity", "0");
                         d3.select(`.mouse-line${i}b`)
                             .style("opacity", "0");
+                        d3.select(`.mouse-line${i}c`)
+                            .style("opacity", "0");
                     }
                     focus.style("display", "none");
-                    d3.select("#tooltip").style("display","none");
+                    // d3.select("#tooltip").style("display", "none");
                     // d3.selectAll(".mouse-per-line circle")
                     //     .style("opacity", "0");
                     // d3.selectAll(".mouse-per-line text")
@@ -310,10 +326,12 @@ class d3Chart extends React.Component {
                     } else if (click_ele[i] === 1) {
                         d3.select(`.mouse-line${i}b`)
                             .style("opacity", "1");
+                        d3.select(`.mouse-line${i}c`)
+                            .style("opacity", "1");
                     }
                     console.log("88888888888 ", click_ele[i])
-                    d3.select("#tooltip").style("display", null);
-                    focus.style("display", null);
+                    // d3.select("#tooltip").style("display", null);
+                    focus.style("display", "block");
                     // d3.selectAll(".mouse-per-line circle")
                     //     .style("opacity", "1");
                     // d3.selectAll(".mouse-per-line text")
@@ -339,7 +357,7 @@ class d3Chart extends React.Component {
                         );
 
                         yIndex = Number(this.id) + 1;
-                        ele[1].append("path")
+                        mouseG.append("path")
                             .datum(higlightData)
                             .attr("class", `lineUsers`)
                             .attr("id", `lineUser${i}`)
@@ -368,16 +386,28 @@ class d3Chart extends React.Component {
                             });
                     } else if (click_ele[i] === 1) {
                         d3.select(`.mouse-line${i}b`)
+                            .style("opacity", "1")
                             .attr("d", function () {
                                 let d = "M" + mouse[0] + "," + height;
                                 d += " " + mouse[0] + "," + 0;
                                 console.log(d)
                                 return d;
                             });
+
+                        d3.select(`.mouse-line${i}c`)
+                            .style("opacity", "1")
+                            .attr("d", function () {
+                                let d = "M" + xSelect[0] * 0.08 + "," + height / 1.9;
+                                d += " " + mouse[0] + "," + height / 1.9;
+                                console.log("xSelect[0] ", xSelect[0])
+                                return d;
+                            });
+
                     }
 
-                    var d0 = ecgData[j - 1]
+                    var d0 = ecgData[j > 0 ? j - 1 : 0]
                     var d1 = ecgData[j];
+                    console.log("d0 ", d0, " d1 ", d1)
                     // work out which date value is closest to the mouse
                     var d = xValue - d0[0] > d1[0] - xValue ? d1 : d0;
                     console.log(d, " 55666556")
@@ -385,9 +415,9 @@ class d3Chart extends React.Component {
                         .attr("cx", x(d[0]))
                         .attr("cy", y(d[i + 1]));
 
-                    d3.select("#tooltip")
-                        .attr("x", x(d[0]))
-                        .attr("y", y(d[i + 1]))
+                    // d3.select("#tooltip")
+                    //     .attr("x", x(d[0]))
+                    //     .attr("y", y(d[i + 1]))
                     // focus.select("#focusLineX")
                     //     .attr("x1", x(d[0])).attr("y1", y(d[0]))
                     //     .attr("x2", x(d[0])).attr("y2", y(d[1]));
