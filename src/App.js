@@ -1,12 +1,12 @@
-import React from 'react';
-import './App.css';
-import * as d3 from 'd3';
-import ecg from './ecg.json';
-import '../node_modules/bootstrap/dist/css/bootstrap.css';
+import React from "react";
+import "./App.css";
+import * as d3 from "d3";
+import ecg from "./ecg.json";
+import "../node_modules/bootstrap/dist/css/bootstrap.css";
 class d3Chart extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { data: '' }
+        this.state = { data: "" }
     }
 
     componentDidMount() {
@@ -81,7 +81,7 @@ class d3Chart extends React.Component {
             ele[0].call(d3.zoom().scaleExtent([1, 8])
                 // .translateExtent([[0, 0], [width, height]])
                 // .extent([[0, 0], [width, height]])
-                .on('zoom', function () { ele[1].attr("transform", d3.event.transform) }))
+                .on("zoom", function () { ele[1].attr("transform", d3.event.transform) }))
         })
 
         const x = d3.scaleLinear()
@@ -161,7 +161,7 @@ class d3Chart extends React.Component {
         //         .call(d3.axisBottom(x));
 
         //     ele[1].append("g")
-        //         .attr("class", 'axis axis--y')
+        //         .attr("class", "axis axis--y")
         //         .call(d3.axisLeft(y));
         // })
 
@@ -175,7 +175,7 @@ class d3Chart extends React.Component {
                 .attr("y", 6)
                 .attr("dy", "0.71em")
                 .style("text-anchor", "end")
-                .style('font-size', '12')
+                .style("font-size", "12")
                 .text(leadNames[i]);
         })
         let click_count = 0,
@@ -183,6 +183,7 @@ class d3Chart extends React.Component {
             xSelect = [];
         //plot the graph
         groups.forEach((ele, i) => {
+
             ele[1].append("path")
                 .datum(ecgData)
                 .attr("class", `lineUsers`)
@@ -201,14 +202,14 @@ class d3Chart extends React.Component {
             mouseG.append("path") // this is the red vertical line to follow mouse
                 .attr("class", `mouse-line${i}a`)
                 .style("stroke", "red")
-                .style("stroke-width", "1px")
+                .style("stroke-width", ".8px")
             mouseG.append("path") // this is the red vertical line to follow mouse
                 .attr("class", `mouse-line${i}b`)
                 .style("stroke", "red")
-                .style("stroke-width", "1px")
-            // let lines = document.getElementsByClassName('line');
+                .style("stroke-width", ".8px")
+            // let lines = document.getElementsByClassName("line");
 
-            //     let mousePerLine = mouseG.selectAll('.mouse-per-line')
+            //     let mousePerLine = mouseG.selectAll(".mouse-per-line")
             //         .data(ecgData)
             //         .enter()
             //         .append("g")
@@ -222,19 +223,43 @@ class d3Chart extends React.Component {
                 console.log("888844444 ", d)
                 return d[0];
             }).right;
-            mouseG.append('rect') // append a rect to catch mouse movements on canvas
-                .attr('width', width) // can't catch mouse events on a g element
-                .attr('height', height)
-                .attr('fill', 'none')
-                .attr('pointer-events', 'all')
-                .attr('id', i)
-                .on('click', function () {
+            ele[1].append("text")
+            .style("display", "none")
+            .attr("id","tooltip")
+            .attr("font-size", "8")
+            .text("I");
+            ele[1].selectAll("circle").data(ecgData).enter().append("circle")
+                .attr("cx", function (d) { return x(d[0]); })
+                .attr("cy", function (d) { return y(d[1]); })
+                .attr("r", 1)
+                .attr("class", "circle");
+
+            var focus = ele[1].append("g").style("display", "none");
+          
+            // focus.append("line")
+            //     .attr("id", "focusLineX")
+            //     .attr("class", "focusLine");
+            // focus.append("line")
+            //     .attr("id", "focusLineY")
+            //     .attr("class", "focusLine");
+            focus.append("circle")
+                .attr("id", "focusCircle")
+                .attr("r", 2)
+                .attr("class", "focusCircle");
+
+            mouseG.append("rect") // append a rect to catch mouse movements on canvas
+                .attr("width", width) // can"t catch mouse events on a g element
+                .attr("height", height)
+                .attr("fill", "none")
+                .attr("pointer-events", "all")
+                .attr("id", i)
+                .on("click", function () {
                     let mouse = d3.mouse(this);
                     let xValue = x.invert(mouse[0]);
                     let yValue = y.invert(mouse[1]);
                     let j = bisectDate(ecgData, xValue);
 
-                    console.log("click-value ", xValue, mouse, j)
+                    // console.log("click-value ", xValue, mouse, j)
 
                     if (click_count > 1) {
                         click_count = 0;
@@ -264,20 +289,21 @@ class d3Chart extends React.Component {
                     // .style("stroke","green")
                     // click_ele.push([`.mouse-line${i}`,click_count])
                 })
-                .on('mouseout', function () { // on mouse out hide line, circles and text
+                .on("mouseout", function () { // on mouse out hide line, circles and text
                     if (click_ele[i] === 0) {
                         d3.select(`.mouse-line${i}a`)
                             .style("opacity", "0");
                         d3.select(`.mouse-line${i}b`)
                             .style("opacity", "0");
                     }
-
+                    focus.style("display", "none");
+                    d3.select("#tooltip").style("display","none");
                     // d3.selectAll(".mouse-per-line circle")
                     //     .style("opacity", "0");
                     // d3.selectAll(".mouse-per-line text")
                     //     .style("opacity", "0");
                 })
-                .on('mouseover', function () { // on mouse in show line, circles and text
+                .on("mouseover", function () { // on mouse in show line, circles and text
                     if (click_ele[i] === 0) {
                         d3.select(`.mouse-line${i}a`)
                             .style("opacity", "1");
@@ -286,6 +312,8 @@ class d3Chart extends React.Component {
                             .style("opacity", "1");
                     }
                     console.log("88888888888 ", click_ele[i])
+                    d3.select("#tooltip").style("display", null);
+                    focus.style("display", null);
                     // d3.selectAll(".mouse-per-line circle")
                     //     .style("opacity", "1");
                     // d3.selectAll(".mouse-per-line text")
@@ -299,7 +327,7 @@ class d3Chart extends React.Component {
                     if (xSelect[0] < xSelect[1]) {
                         min = xSelect[0];
                         max = xSelect[1];
-                    }else{
+                    } else {
                         max = xSelect[0];
                         min = xSelect[1];
                     }
@@ -310,7 +338,7 @@ class d3Chart extends React.Component {
                         }
                         );
 
-                        yIndex = Number(this.id)+1;
+                        yIndex = Number(this.id) + 1;
                         ele[1].append("path")
                             .datum(higlightData)
                             .attr("class", `lineUsers`)
@@ -321,10 +349,14 @@ class d3Chart extends React.Component {
 
                     // react on right-clicking
                 })
-                .on('mousemove', function () { // mouse moving over canvas
+                .on("mousemove", function () { // mouse moving over canvas
                     console.log("mousemove ", click_ele[i], click_count)
 
                     let mouse = d3.mouse(this);
+                    let xValue = x.invert(mouse[0]);
+                    let yValue = y.invert(mouse[1]);
+                    let j = bisectDate(ecgData, xValue);
+                    console.log("click-value-console", xValue, yValue, mouse, j)
 
                     if (click_ele[i] === 0) {
                         d3.select(`.mouse-line${i}a`)
@@ -343,6 +375,25 @@ class d3Chart extends React.Component {
                                 return d;
                             });
                     }
+
+                    var d0 = ecgData[j - 1]
+                    var d1 = ecgData[j];
+                    // work out which date value is closest to the mouse
+                    var d = xValue - d0[0] > d1[0] - xValue ? d1 : d0;
+                    console.log(d, " 55666556")
+                    focus.select("#focusCircle")
+                        .attr("cx", x(d[0]))
+                        .attr("cy", y(d[i + 1]));
+
+                    d3.select("#tooltip")
+                        .attr("x", x(d[0]))
+                        .attr("y", y(d[i + 1]))
+                    // focus.select("#focusLineX")
+                    //     .attr("x1", x(d[0])).attr("y1", y(d[0]))
+                    //     .attr("x2", x(d[0])).attr("y2", y(d[1]));
+                    // focus.select("#focusLineY")
+                    //     .attr("x1", x(d[0])).attr("y1", y(d[1]))
+                    //     .attr("x2", x(d[1])).attr("y2", y(d[1]));
                     // d3.selectAll(".mouse-per-line")
                     //     .attr("transform", function (d, i) {
                     //         console.log(width / mouse[0])
@@ -365,7 +416,7 @@ class d3Chart extends React.Component {
                     //             else break; //position found
                     //         }
 
-                    //         d3.select(this).select('text')
+                    //         d3.select(this).select("text")
                     //             .text(y.invert(pos.y).toFixed(2));
 
                     //         return "translate(" + mouse[0] + "," + pos.y + ")";
@@ -386,7 +437,7 @@ class d3Chart extends React.Component {
         return (
             <div className="chart" >
                 <h3>Visualizing Data with React and D3</h3>
-                <svg className="main-container" width="1280" height="500" style={{ border: 'solid 1px #eee', borderBottom: 'solid 1px #ccc', marginLeft: '20px' }} />
+                <svg className="main-container" width="1280" height="500" style={{ border: "solid 1px #eee", borderBottom: "solid 1px #ccc", marginLeft: "20px" }} />
             </div>
         )
     }

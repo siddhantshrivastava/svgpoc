@@ -1,8 +1,20 @@
 .axis--x path {
   /*display: none;*/
 }
+.circle {
+  fill: none;
+  stroke: none;
+  stroke-width: .5px;
+}
+.focusLine {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 0.5px;
+}
 
-
+.focusCircle {
+  fill: red;
+}
 /*.axis */
 
 .line {
