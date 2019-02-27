@@ -3,14 +3,14 @@ pipelines:
     - step:
         script: # Modify the commands below to build your repository.
           - echo "If you want docker build manually run it"
-      - step:
-          caches:
-            - docker
-          name: Building a docker image
-          trigger: manual
-          script:
-            - docker login $DOCKER_URL -u $DOCKER_USER -p $DOCKER_PASSWORD
-            - docker build -t $DOCKER_URL/poc-viewer:$BITBUCKET_COMMIT .
-            - docker push $DOCKER_URL/poc-viewer:$BITBUCKET_COMMIT
+    - step:
+        caches:
+          - docker
+        name: Building a docker image
+        trigger: manual
+        script:
+          - docker login $DOCKER_URL -u $DOCKER_USER -p $DOCKER_PASSWORD
+          - docker build -t $DOCKER_URL/poc-viewer:$BITBUCKET_COMMIT .
+          - docker push $DOCKER_URL/poc-viewer:$BITBUCKET_COMMIT
 options:
   docker: true
